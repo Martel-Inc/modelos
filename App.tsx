@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-// Correctly import from react-router-dom for version 6
+// Correct imports from react-router-dom for routing and navigation
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { User, UserRole } from './types';
 import Catalog from './views/Catalog';
@@ -10,26 +9,14 @@ import OperationsDashboard from './views/OperationsDashboard';
 import RegistrationFlow from './views/RegistrationFlow';
 import Sidebar from './components/Sidebar';
 import ChatRoom from './views/ChatRoom';
+import Login from './views/Login';
 
 const App: React.FC = () => {
-  // Usuario administrador por defecto para omitir el login y dar acceso total
-  // Se identifica como Eleazar según lo solicitado anteriormente
-  const defaultUser: User = {
-    id: 'admin_eleazar',
-    name: 'Eleazar (Admin)',
-    email: 'admin@martel.com',
-    role: UserRole.ADMIN,
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Eleazar`
-  };
-  
-  const [user] = useState<User | null>(defaultUser);
+  const [user, setUser] = useState<User | null>(null);
   const [language, setLanguage] = useState<'es' | 'en'>('es');
 
-  // El administrador tiene acceso a todas las rutas protegidas
-  const ProtectedRoute = ({ children, allowedRoles }: { children?: React.ReactNode, allowedRoles: UserRole[] }) => {
-    if (!user) return <Navigate to="/catalog" />;
-    if (user.role === UserRole.ADMIN || allowedRoles.includes(user.role)) return <>{children}</>;
-    return <Navigate to="/catalog" />;
+  const handleLogin = (newUser: User) => {
+    setUser(newUser);
   };
 
   return (
@@ -37,41 +24,30 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-black/10 text-white flex relative">
         {user && <Sidebar user={user} language={language} setLanguage={setLanguage} />}
         
-        <main className={`flex-1 overflow-auto p-4 md:p-8 ${user ? 'ml-0 md:ml-64' : ''}`}>
+        <main className={`flex-1 overflow-auto ${user ? 'ml-0 md:ml-64 p-4 md:p-8' : ''}`}>
           <Routes>
-            {/* La aplicación ahora inicia directamente en el Catálogo */}
-            <Route path="/catalog" element={<Catalog user={user} />} />
-            
+            <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/catalog" />} />
             <Route path="/register-model" element={<RegistrationFlow />} />
             
+            {/* Redirigir siempre al catálogo por defecto */}
             <Route path="/" element={<Navigate to="/catalog" />} />
 
             <Route path="/admin/*" element={
-              <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
-                <AdminDashboard />
-              </ProtectedRoute>
+              user?.role === UserRole.ADMIN ? <AdminDashboard /> : <Navigate to="/login" />
             } />
 
             <Route path="/model/*" element={
-              <ProtectedRoute allowedRoles={[UserRole.MODEL]}>
-                <ModelProfile />
-              </ProtectedRoute>
+              user?.role === UserRole.MODEL ? <ModelProfile /> : <Navigate to="/login" />
             } />
 
             <Route path="/operations/*" element={
-              <ProtectedRoute allowedRoles={[UserRole.OPERATIONS]}>
-                <OperationsDashboard />
-              </ProtectedRoute>
+              (user?.role === UserRole.OPERATIONS || user?.role === UserRole.ADMIN) ? <OperationsDashboard /> : <Navigate to="/login" />
             } />
 
-            <Route path="/chat/:partnerId" element={
-                <ProtectedRoute allowedRoles={[UserRole.MODEL, UserRole.CLIENT, UserRole.ADMIN]}>
-                    <ChatRoom />
-                </ProtectedRoute>
-            } />
+            <Route path="/catalog" element={<Catalog user={user} onLoginSuccess={handleLogin} />} />
+            <Route path="/chat/:partnerId" element={user ? <ChatRoom /> : <Navigate to="/login" />} />
             
-            {/* Redirección global al catálogo para cualquier ruta no encontrada */}
-            <Route path="*" element={<Navigate to="/catalog" />} />
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
       </div>

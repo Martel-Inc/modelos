@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, CheckCircle, Shield, AlertCircle, ArrowRight, ArrowLeft, Trash2, Plus, CheckSquare, Square } from 'lucide-react';

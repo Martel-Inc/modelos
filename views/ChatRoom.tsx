@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Shield, Lock, MapPin, MoreVertical, Phone } from 'lucide-react';
 
