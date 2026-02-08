@@ -1,0 +1,8 @@
+{
+  "name": "Martel Model Agency",
+  "description": "Exclusive management platform for models, operations, and clients with real-time tracking, payment validation, and secure communication.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
